@@ -1672,9 +1672,13 @@ name = "iroh-prototype"
 version = "0.0.0-SNAPSHOT"
 dependencies = [
  "anyhow",
+ "data-encoding",
+ "futures-lite",
  "iroh",
  "iroh-gossip",
  "rand 0.8.5",
+ "serde",
+ "serde_json",
  "tokio",
 ]
 

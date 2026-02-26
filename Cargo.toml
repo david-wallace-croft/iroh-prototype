@@ -13,9 +13,13 @@ version = "0.0.0-SNAPSHOT"
 
 [dependencies]
 anyhow = "1.0.102"
+data-encoding = "2.10.0"
+futures-lite = "2.6.1"
 iroh = "0.31.0"
 iroh-gossip = "0.31.0"
 rand = "0.8.5"
+serde = { version = "1.0.228", features = ["derive"] }
+serde_json = "1.0.149"
 tokio = "1.49.0"
 
 [profile.dev]
