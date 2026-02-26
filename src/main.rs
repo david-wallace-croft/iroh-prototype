@@ -149,9 +149,9 @@ fn input_loop(line_tx: Sender<String>) -> Result<()> {
   let stdin = ::std::io::stdin();
 
   loop {
-    stdin.read_line(&mut buffer);
+    let _ = stdin.read_line(&mut buffer);
 
-    line_tx.blocking_send(buffer.clone());
+    let _ = line_tx.blocking_send(buffer.clone());
 
     buffer.clear();
   }
@@ -175,7 +175,7 @@ async fn subscribe_loop(mut receiver: GossipReceiver) -> Result<()> {
     if let Event::Gossip(gossip_event) = event {
       match gossip_event {
         GossipEvent::Received(message) => {
-          println!("got message: {:?}", &message);
+          //   println!("got message: {:?}", &message);
 
           match Message::from_bytes(&message.content)?.body {
             MessageBody::AboutMe {
@@ -244,11 +244,11 @@ struct Message {
 #[derive(Debug, Deserialize, Serialize)]
 enum MessageBody {
   AboutMe {
-    from: PublicKey,
+    from: NodeId,
     name: String,
   },
   Message {
-    from: PublicKey,
+    from: NodeId,
     text: String,
   },
 }

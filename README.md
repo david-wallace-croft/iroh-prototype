@@ -11,7 +11,9 @@
 
 ## Usage
 
-- cargo run
+- cargo run -- --help
+- cargo run -- --name=Player1 open
+- cargo run -- --name=Player2 join \[...\]
 
 ## History
 
