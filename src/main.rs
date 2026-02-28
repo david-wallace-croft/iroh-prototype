@@ -1,3 +1,4 @@
+use self::args::Args;
 use self::command::Command;
 use ::anyhow::Result;
 use ::clap::Parser;
@@ -15,6 +16,7 @@ use ::std::net::{Ipv4Addr, SocketAddrV4};
 use ::std::str::FromStr;
 use ::tokio::sync::mpsc::Sender;
 
+mod args;
 mod command;
 
 #[::tokio::main]
@@ -208,23 +210,6 @@ async fn subscribe_loop(mut receiver: GossipReceiver) -> Result<()> {
   }
 
   Ok(())
-}
-
-/// Chat over iroh-gossip
-///
-/// This broadcasts messages over iroh-gossip
-#[derive(Debug, Parser)]
-struct Args {
-  /// Disable relay completely
-  #[clap(long)]
-  no_relay: bool,
-  /// Set your nickname
-  #[clap(
-    short, long
-  )]
-  name: Option<String>,
-  #[clap(subcommand)]
-  command: Command,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
