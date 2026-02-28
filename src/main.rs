@@ -1,3 +1,4 @@
+use self::command::Command;
 use ::anyhow::Result;
 use ::clap::Parser;
 use ::data_encoding::BASE32_NOPAD;
@@ -12,7 +13,9 @@ use ::std::collections::HashMap;
 use ::std::fmt::{Display, Formatter};
 use ::std::net::{Ipv4Addr, SocketAddrV4};
 use ::std::str::FromStr;
-use tokio::sync::mpsc::Sender;
+use ::tokio::sync::mpsc::Sender;
+
+mod command;
 
 #[::tokio::main]
 async fn main() -> Result<()> {
@@ -222,17 +225,6 @@ struct Args {
   name: Option<String>,
   #[clap(subcommand)]
   command: Command,
-}
-
-#[derive(Debug, Parser)]
-enum Command {
-  /// Open a chat room for a topic and print a ticket for others to join
-  Open,
-  /// Join a chat room from a ticket
-  Join {
-    /// The ticket, as base32 string
-    ticket: String,
-  },
 }
 
 #[derive(Debug, Deserialize, Serialize)]
