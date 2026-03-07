@@ -1753,6 +1753,7 @@ name = "iroh-prototype"
 version = "0.0.0-SNAPSHOT"
 dependencies = [
  "anyhow",
+ "bytes",
  "clap",
  "data-encoding",
  "futures-lite",

@@ -4,10 +4,11 @@ use self::message::Message;
 use self::message_body::MessageBody;
 use self::ticket::Ticket;
 use ::anyhow::Result;
+use ::bytes::Bytes;
 use ::clap::Parser;
 use ::futures_lite::stream::StreamExt;
 use ::iroh::protocol::Router;
-use ::iroh::{Endpoint, PublicKey, RelayMode, SecretKey};
+use ::iroh::{Endpoint, NodeAddr, PublicKey, RelayMode, SecretKey};
 use ::iroh_gossip::net::{Event, Gossip, GossipEvent, GossipReceiver};
 use ::iroh_gossip::proto::TopicId;
 use ::rand::rngs::OsRng;
@@ -37,10 +38,12 @@ async fn main() -> Result<()> {
     Command::Join {
       ticket,
     } => {
+      let ticket = Ticket::from_str(ticket)?;
+
       let Ticket {
         topic_id,
         peers,
-      } = Ticket::from_str(ticket)?;
+      } = ticket;
 
       println!("> joining chat room for topic {topic_id}");
 
@@ -57,22 +60,27 @@ async fn main() -> Result<()> {
 
   println!("> our secret key: {secret_key}");
 
+  let socket_addr_v4: SocketAddrV4 =
+    SocketAddrV4::new(Ipv4Addr::UNSPECIFIED, 0);
+
   let endpoint: Endpoint = Endpoint::builder()
     .secret_key(secret_key)
     .relay_mode(relay_mode)
-    .bind_addr_v4(SocketAddrV4::new(Ipv4Addr::UNSPECIFIED, 0))
+    .bind_addr_v4(socket_addr_v4)
     // .discovery_n0()
     .bind()
     .await?;
 
-  println!("> our node id: {}", endpoint.node_id());
+  let endpoint_node_id: PublicKey = endpoint.node_id();
+
+  println!("> our node id: {endpoint_node_id}");
 
   let gossip: Gossip = Gossip::builder().spawn(endpoint.clone()).await?;
 
   let ticket: Ticket = {
-    let me = endpoint.node_addr().await?;
+    let me: NodeAddr = endpoint.node_addr().await?;
 
-    let peers = peers.iter().cloned().chain([me]).collect();
+    let peers: Vec<NodeAddr> = peers.iter().cloned().chain([me]).collect();
 
     Ticket {
       peers,
@@ -87,7 +95,8 @@ async fn main() -> Result<()> {
     .spawn()
     .await?;
 
-  let peer_ids: Vec<PublicKey> = peers.iter().map(|p| p.node_id).collect();
+  let peer_ids: Vec<PublicKey> =
+    peers.iter().map(|p: &NodeAddr| p.node_id).collect();
 
   if peers.is_empty() {
     println!("> waiting for peers to join us...");
@@ -109,18 +118,27 @@ async fn main() -> Result<()> {
   println!("> connected");
 
   if let Some(name) = args.name {
-    let message: Message = Message::new(MessageBody::AboutMe {
+    let message_body: MessageBody = MessageBody::AboutMe {
       from: endpoint.node_id(),
       name,
-    });
+    };
+
+    let message: Message = Message::new(message_body);
 
     // let encoded_message = message.to_bytes();
 
     // sender.broadcast(encoded_message.into()).await?;
-    sender.broadcast(message.to_vec().into()).await?;
+
+    let message_vec: Vec<u8> = message.to_vec();
+
+    let message_bytes: Bytes = message_vec.into();
+
+    sender.broadcast(message_bytes).await?;
   }
 
-  ::tokio::spawn(subscribe_loop(receiver));
+  let subscribe_loop_future = subscribe_loop(receiver);
+
+  ::tokio::spawn(subscribe_loop_future);
 
   let (line_tx, mut line_rx) = ::tokio::sync::mpsc::channel(1);
 
@@ -129,12 +147,18 @@ async fn main() -> Result<()> {
   println!("> type a message and hit enter to broadcast...");
 
   while let Some(text) = line_rx.recv().await {
-    let message = Message::new(MessageBody::Message {
+    let message_body: MessageBody = MessageBody::Message {
       from: endpoint.node_id(),
       text: text.clone(),
-    });
+    };
 
-    sender.broadcast(message.to_vec().into()).await?;
+    let message = Message::new(message_body);
+
+    let message_vec: Vec<u8> = message.to_vec();
+
+    let message_bytes: Bytes = message_vec.into();
+
+    sender.broadcast(message_bytes).await?;
 
     println!("> sent: {text}");
   }
