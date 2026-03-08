@@ -125,13 +125,7 @@ async fn main() -> Result<()> {
 
     let message: Message = Message::new(message_body);
 
-    // let encoded_message = message.to_bytes();
-
-    // sender.broadcast(encoded_message.into()).await?;
-
-    let message_vec: Vec<u8> = message.to_vec();
-
-    let message_bytes: Bytes = message_vec.into();
+    let message_bytes: Bytes = message.into();
 
     sender.broadcast(message_bytes).await?;
   }
@@ -154,9 +148,7 @@ async fn main() -> Result<()> {
 
     let message = Message::new(message_body);
 
-    let message_vec: Vec<u8> = message.to_vec();
-
-    let message_bytes: Bytes = message_vec.into();
+    let message_bytes: Bytes = message.into();
 
     sender.broadcast(message_bytes).await?;
 
