@@ -1,7 +1,7 @@
 # iroh Prototype
 
-[![Rust][rust-badge]][rust-url]
 [![MIT licensed][mit-badge]][mit-url]
+[![Rust][rust-badge]][rust-url]
 
 [mit-badge]: https://img.shields.io/badge/license-MIT-blue.svg
 [mit-url]: https://github.com/david-wallace-croft/book-advanced/blob/main/LICENSE.txt
